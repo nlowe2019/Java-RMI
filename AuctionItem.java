@@ -28,6 +28,9 @@ public class AuctionItem implements java.io.Serializable{
     public String getCondition() {
         return itemCondition;
     }
+    public float getPrice() {
+        return price;
+    }
     
     public String toString() {
         return "ID: " + Integer.toString(itemId) + 

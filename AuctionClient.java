@@ -1,6 +1,3 @@
-import javax.swing.*;
-import java.awt.*;
-
 import javax.crypto.*;
 import java.rmi.Naming;
 
@@ -15,16 +12,25 @@ import java.rmi.NotBoundException;
 
 public class AuctionClient {
 
-    public static void main(String[] args) {
+    private ClientGUI gui;
+    private ClientId id;
+    private Auction auction;
 
-        ClientId id = new ClientId(1);
+    public static void main(String[] args) {
+        new AuctionClient(1);
+    }
+
+    public AuctionClient(int n) {
+
+        gui = new ClientGUI(this);
+        id = new ClientId(n);
 
         try {
             // Encrypt clientId object
             SealedObject sealedId = aesEncrypt(id);
 
             // Create the reference to the remote object through the remiregistry
-            Auction auction = (Auction) Naming.lookup("rmi://localhost/AuctionService");
+            auction = (Auction) Naming.lookup("rmi://localhost/AuctionService");
 
             // Use auction reference to call remote methods
 
@@ -53,6 +59,10 @@ public class AuctionClient {
             System.out.println("\nInvalidKeySpecException");
             ikse.printStackTrace();
         }
+    }
+
+    public AuctionItem remoteGetSpec(int itemID) throws RemoteException, InvalidKeySpecException {
+       return (AuctionItem) aesDecrypt(auction.getSpec(itemID, aesEncrypt(id)));
     }
 
     public static Object aesDecrypt(SealedObject sealedItem) {
