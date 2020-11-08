@@ -1,8 +1,6 @@
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
-
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.rmi.RemoteException;
@@ -10,53 +8,61 @@ import java.security.spec.InvalidKeySpecException;
 
 public class ClientGUI implements ActionListener {
 
-    private AuctionClient client;
-
-    private JFrame frame;
-    private JPanel inputPanel;
-    private JPanel resultsPanel;
-
-    private JLabel nametag;
-    private JLabel bidtag;
-    private JLabel descriptiontag;
-    private JLabel conditiontag;
-    private JLabel name;
-    private JLabel bid;
-    private JLabel condition;
-    private JLabel description;
-
-    private JTextField inputID;
-    private JButton submitID;
+    private AuctionClient client;   // Link to Client
+ 
+    // Main Containers 
+    private JFrame frame;           // JFrame - root container
+    private JTabbedPane tab;        // Tabbed Pane - Switches between pages
+ 
+    // Search by ID Page: 
+    private JPanel mainPanel;       // main container
+    private JPanel inputPanel;      // Search Box
+    private JPanel resultsPanel;    // Results Box
+ 
+    private JLabel nametag;         // Item Variable Names...
+    private JLabel bidtag; 
+    private JLabel descriptiontag; 
+    private JLabel conditiontag; 
+    private JLabel name;            // Item Variable Values...
+    private JLabel bid; 
+    private JLabel condition; 
+    private JLabel description; 
+ 
+    private JTextField inputID;     // Text input for ID
+    private JButton submitID;       // Button to confirm input and display result
 
     public ClientGUI(AuctionClient client) {
 
         this.client = client;
 
+        // Initialise Swing Components
         frame = new JFrame();
+        tab = new JTabbedPane();
 
+        mainPanel = new JPanel();
         inputPanel = new JPanel();
         inputID = new JTextField();
         submitID = new JButton();
         resultsPanel = new JPanel();
-        nametag = new JLabel();
-        bidtag = new JLabel();
-        descriptiontag = new JLabel();
-        conditiontag = new JLabel();
-        name = new JLabel();
-        bid = new JLabel();
-        condition = new JLabel();
-        description = new JLabel();
+        nametag = new JLabel("Name");
+        bidtag = new JLabel("Current Bid");
+        descriptiontag = new JLabel("Description");
+        conditiontag = new JLabel("Condition");
+        name = new JLabel("");
+        bid = new JLabel("");
+        condition = new JLabel("");
+        description = new JLabel("");
         description.setVerticalAlignment(1);
+        inputID.setToolTipText("Enter Item ID");
+        submitID.addActionListener(this);
+        submitID.setText("Submit");
 
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
+        // Specifies Search Box Layout
+
         Border loweredetched = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
         inputPanel.setBorder(BorderFactory.createTitledBorder(loweredetched, "Search by Item ID"));
-
-        inputID.setToolTipText("Enter Item ID");
-        submitID.addActionListener(this);
-
-        submitID.setText("Submit");
 
         GroupLayout inputPanelLayout = new GroupLayout(inputPanel);
         inputPanel.setLayout(inputPanelLayout);
@@ -64,25 +70,20 @@ public class ClientGUI implements ActionListener {
                 .addGroup(inputPanelLayout.createSequentialGroup().addContainerGap()
                         .addComponent(inputID, GroupLayout.PREFERRED_SIZE, 112, GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED).addComponent(submitID)
-                        .addContainerGap(142, Short.MAX_VALUE)));
+                        .addContainerGap(142, Short.MAX_VALUE))
+        );
         inputPanelLayout.setVerticalGroup(inputPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                 .addGroup(inputPanelLayout.createSequentialGroup().addContainerGap()
                         .addGroup(inputPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                                 .addComponent(inputID, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
                                         GroupLayout.PREFERRED_SIZE)
                                 .addComponent(submitID))
-                        .addContainerGap(39, Short.MAX_VALUE)));
+                        .addContainerGap(39, Short.MAX_VALUE))
+        );
+
+        // Specifies Results Box Layout
 
         resultsPanel.setBorder(BorderFactory.createTitledBorder(loweredetched, "Result"));
-
-        nametag.setText("Name");
-        bidtag.setText("Current Bid");
-        descriptiontag.setText("Description");
-        conditiontag.setText("Condition");
-        name.setText("");
-        bid.setText("");
-        condition.setText("");
-        description.setText("");
 
         GroupLayout resultsPanelLayout = new GroupLayout(resultsPanel);
         resultsPanel.setLayout(resultsPanelLayout);
@@ -127,38 +128,60 @@ public class ClientGUI implements ActionListener {
                 .addContainerGap())
         );
 
+        // Orders input and results panels in parent container
+
+        GroupLayout mainPanelLayout = new GroupLayout(mainPanel);
+        mainPanel.setLayout(mainPanelLayout);
+        mainPanelLayout.setHorizontalGroup(
+            mainPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(mainPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(mainPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(inputPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(resultsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+        mainPanelLayout.setVerticalGroup(
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(mainPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(inputPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(resultsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(25, Short.MAX_VALUE))
+        );
+
+        // Adds main container to Tabbed Pane
+
+        tab.addTab("Search ID", mainPanel);
+
         GroupLayout layout = new GroupLayout(frame.getContentPane());
         frame.getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(inputPanel, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(resultsPanel, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+            .addComponent(tab)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(inputPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(resultsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(tab, GroupLayout.DEFAULT_SIZE, 434, Short.MAX_VALUE)
         );
 
+        frame.setTitle("Auction");
         frame.pack();
         frame.setVisible(true);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
+        
+        // Search by ID Button
         if (e.getSource() == submitID) {
             try {
+                // Remotely calls getSpec method to return Auciton Item
                 AuctionItem item = client.remoteGetSpec(Integer.parseInt(inputID.getText()));
                 if(item == null)
                     JOptionPane.showMessageDialog(frame, "Item not found.");
+                // Fill results box with item details
                 name.setText(item.getTitle());
                 bid.setText(String.format("£%.2f", item.getPrice()));
                 condition.setText(item.getCondition());
@@ -166,7 +189,5 @@ public class ClientGUI implements ActionListener {
             } catch (NumberFormatException | RemoteException | InvalidKeySpecException | NullPointerException e1) {
             }
         }
-
-
     }
 }
