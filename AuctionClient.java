@@ -1,6 +1,6 @@
 import javax.crypto.*;
 import java.rmi.Naming;
-
+import java.util.concurrent.ConcurrentHashMap;
 import java.io.IOException;
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -22,24 +22,18 @@ public class AuctionClient {
 
     public AuctionClient(int n) {
 
-        gui = new ClientGUI(this);
-        id = new ClientId(n);
+        ClientGUI gui = new ClientGUI(this);
+        ClientId id = new ClientId(n);
 
         try {
-            // Encrypt clientId object
-            SealedObject sealedId = aesEncrypt(id);
-
-            // Create the reference to the remote object through the remiregistry
+            // Creates reference to the remote object through the remiregistry
             auction = (Auction) Naming.lookup("rmi://localhost/AuctionService");
 
-            // Use auction reference to call remote methods
-
-            // Example of auction item without decryption:
-            System.out.println("\nItem 5235 unencrypted: " + auction.getSpec(5235, sealedId) + "\n");
-            // Auction items with encryption
-            System.out.println(aesDecrypt(auction.getSpec(5235, aesEncrypt(id))));
-            System.out.println(aesDecrypt(auction.getSpec(284, aesEncrypt(id))));
-            System.out.println(aesDecrypt(auction.getSpec(1503, aesEncrypt(id))));
+            remoteAddListing(5235, "Apple iPhone 11", (float) 499.99,
+            "Black iPhone 11, comes with 64GB of storage and includes charging adapter.", "New", aesEncrypt(id));
+            remoteAddListing(284, "Toshiba 800W Microwave Oven", (float) 63.50,
+                    "Adjustable power levels and time. Low-Noise operation (55db).", "Used", aesEncrypt(id));
+            remoteAddListing(1503, "Office Chair", (float) 59.99, "Height adjustable swivel desk chair, black.", "New", aesEncrypt(id));
         }
 
         // Catch the exceptions that may occur
@@ -61,9 +55,25 @@ public class AuctionClient {
         }
     }
 
+//--------------------------------------------------------Remote Methods-----------------------------------------------------------------
+
     public AuctionItem remoteGetSpec(int itemID) throws RemoteException, InvalidKeySpecException {
-       return (AuctionItem) aesDecrypt(auction.getSpec(itemID, aesEncrypt(id)));
+        // Retrieve encrypted item from server
+        SealedObject item = auction.getSpec(itemID, aesEncrypt(id));
+        // Decrypt and return item
+        return (AuctionItem) aesDecrypt(item);
     }
+
+    public ConcurrentHashMap<Integer, AuctionItem> remoteGetAll() throws RemoteException, InvalidKeySpecException {
+        return (ConcurrentHashMap<Integer, AuctionItem>) aesDecrypt(auction.getAll(aesEncrypt(id)));
+    }
+
+    public void remoteAddListing(int itemId, String itemTitle, float price, String itemDescription, String itemCondition, SealedObject seller)
+            throws RemoteException {
+        auction.addListing(itemId, itemTitle, price, itemDescription, itemCondition, seller);
+    }
+
+// -----------------------------------------------------Encryption Methods----------------------------------------------------------------
 
     public static Object aesDecrypt(SealedObject sealedItem) {
         try {

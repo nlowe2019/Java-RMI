@@ -1,42 +1,49 @@
 import java.io.IOException;
 import java.io.Serializable;
+import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.crypto.*;
 
 public class AuctionImpl extends java.rmi.server.UnicastRemoteObject implements Auction {
 
     private static final long serialVersionUID = 6192197272342675756L;
 
-    private HashMap<Integer, AuctionItem> items;
+    private ConcurrentHashMap<Integer, AuctionItem> items;
 
-    // Implementations must have an explicit constructor in order to declare the RemoteException exception
+    // Implementations must have an explicit constructor in order to declare the
+    // RemoteException exception
     public AuctionImpl() throws java.rmi.RemoteException {
         super();
-        
-        // Dummy data stored in Hashmap
-        items = new HashMap<>();
 
-        newItem(5235, "Apple iPhone 11", (float) 499.99, "Black iPhone 11, comes with 64GB of storage and includes charging adapter.", "New");
-        newItem(284, "Toshiba 800W Microwave Oven", (float) 63.50, "Adjustable power levels and time. Low-Noise operation (55db).", "Used");
-        newItem(1503, "Office Chair", (float) 59.99, "Height adjustable swivel desk chair, black.", "New");
+        items = new ConcurrentHashMap<>();
     }
 
-    public SealedObject getSpec(int itemId, SealedObject clientId) throws java.rmi.RemoteException, InvalidKeySpecException {
+    public SealedObject getSpec(int itemId, SealedObject clientId)
+            throws java.rmi.RemoteException {
         // Decrypt client id
         System.out.println("Request from client " + aesDecrypt(clientId) + " for item " + itemId);
         // Return requested auction item as SealedObject
         return (aesEncrypt(items.get(itemId)));
     }
 
-    public void newItem(int itemId, String itemTitle, float price, String itemDescription, String itemCondition) throws java.rmi.RemoteException {
+    public void addListing(int itemId, String itemTitle, float price, String itemDescription, String itemCondition, SealedObject seller)
+            throws java.rmi.RemoteException {
         // Instantiate new AuctionItem
-        AuctionItem item = new AuctionItem(itemId, itemTitle, price, itemDescription, itemCondition);
+        AuctionItem item = new AuctionItem(itemId, itemTitle, price, itemDescription, itemCondition, (ClientId)aesDecrypt(seller));
         // Add new item to hashmap
         items.put(item.getId(), item);
     }
+
+    public SealedObject getAll(SealedObject clientId) throws RemoteException {
+        System.out.println("Request from client " + aesDecrypt(clientId) + " for all listings");
+        return aesEncrypt(items);
+    }
+
+    //---------------------------------------------------Encrpytion Methods----------------------------------------------------//
 
     public Object aesDecrypt(SealedObject toDecrypt) {
         try {

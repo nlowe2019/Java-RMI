@@ -12,8 +12,12 @@ public interface Auction
     public SealedObject getSpec(int itemId, SealedObject clientId)
         throws java.rmi.RemoteException, InvalidKeySpecException;
 
+    // Returns items collection
+    public SealedObject getAll(SealedObject ClientId)
+        throws java.rmi.RemoteException;
+
     // adds new item to auction item hashmap
-    public void newItem(int itemId, String itemTitle, float price, String itemDescription, String itemCondition) 
+    public void addListing(int itemId, String itemTitle, float price, String itemDescription, String itemCondition, SealedObject seller) 
         throws java.rmi.RemoteException;
 
     // encrypts any Serializable object

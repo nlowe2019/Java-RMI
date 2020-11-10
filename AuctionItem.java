@@ -5,15 +5,19 @@ public class AuctionItem implements java.io.Serializable{
     private int itemId;
     private String itemTitle;
     private float price;
+    private float reserve;
     private String itemDescription;
     private String itemCondition;
+    private ClientId seller;
+    private ClientId bidder;
 
-    public AuctionItem(int itemId, String itemTitle, float price, String itemDescription, String itemCondition) {
+    public AuctionItem(int itemId, String itemTitle, float price, String itemDescription, String itemCondition, ClientId seller) {
         this.itemId = itemId;
         this.itemTitle = itemTitle;
         this.itemDescription = itemDescription;
         this.itemCondition = itemCondition;
         this.price = price;
+        this.seller = seller;
     }
 
     public int getId() {
@@ -30,6 +34,15 @@ public class AuctionItem implements java.io.Serializable{
     }
     public float getPrice() {
         return price;
+    }
+    public float getReserve() {
+        return reserve;
+    }
+    public ClientId getSeller() {
+        return seller;
+    }
+    public ClientId getBidder() {
+        return bidder;
     }
     
     public String toString() {
