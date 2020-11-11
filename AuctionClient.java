@@ -24,7 +24,6 @@ public class AuctionClient {
 
         id = new ClientId(n);
         gui = new ClientGUI(this);
-        System.out.println(id);
 
         try {
             // Creates reference to the remote object through the remiregistry
@@ -78,8 +77,12 @@ public class AuctionClient {
         auction.addListing(itemTitle, price, reserve, itemDescription, itemCondition, seller);
     }
 
-    public void remotePlaceBid(int itemid, float bid, ClientId bidder) throws RemoteException {
-        auction.placeBid(itemid, bid, bidder);
+    public void remotePlaceBid(int itemId, float bid, ClientId bidder) throws RemoteException {
+        auction.placeBid(itemId, bid, bidder);
+    }
+
+    public void remoteCloseListing(int itemId) throws RemoteException {
+        auction.closeListing(itemId);
     }
 
 // -----------------------------------------------------Encryption Methods----------------------------------------------------------------

@@ -23,6 +23,9 @@ public interface Auction extends java.rmi.Remote {
     public void placeBid(int itemId, float bid, ClientId bidder)
         throws RemoteException;
 
+    public void closeListing(int itemId)
+        throws RemoteException;
+
     // encrypts any Serializable object
     public SealedObject aesEncrypt(Serializable toEncrypt)
         throws RemoteException, NoSuchAlgorithmException, InvalidKeySpecException;

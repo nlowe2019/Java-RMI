@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.*;
 import java.rmi.RemoteException;
@@ -7,7 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class AllListingsGUI extends GUIPage implements ActionListener {
 
-    private String title = "All Listings";
+    private String title = "Active Listings";
     private AuctionClient client;
 
     // Page Components:
@@ -57,20 +59,33 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
 
         addPanel = new JPanel();
         nametag = new JLabel("Name");
-        nameinput = new JTextField();
+        nameinput = new JTextField("");
         startpricetag = new JLabel("Starting Price");
-        startpriceinput = new JTextField();
+        startpriceinput = new JTextField("");
         reservetag = new JLabel("Reserve Price");
-        reserveinput = new JTextField();
+        reserveinput = new JTextField("");
         conditiontag = new JLabel("Condition");
         conditioncombo = new JComboBox<>(new DefaultComboBoxModel<>(new String[] { "New", "Used", "Damaged" }));
         descriptiontag = new JLabel("Description");
         descriptioninput = new JTextArea();
         submitButton = new JButton("Submit");
 
+        bidButton.setEnabled(false);
         submitButton.addActionListener(this);
         refreshButton.addActionListener(this);
         bidButton.addActionListener(this);
+        bidInput.getDocument().addDocumentListener(new DocumentListener(){
+            public void removeUpdate(DocumentEvent e) {
+                if (bidInput.getText().equals("") || selectedItem == null)
+                    bidButton.setEnabled(false);
+            }
+            public void insertUpdate(DocumentEvent e) {
+                if (!bidInput.getText().equals("") && selectedItem != null)
+                    bidButton.setEnabled(true);
+            }
+            public void changedUpdate(DocumentEvent e) {
+            }
+        });
 
         descriptioninput.setLineWrap(true);
 
@@ -215,12 +230,14 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
         for (Integer key : items.keySet())
         {
             AuctionItem item = items.get(key);
-            listings[i][0] = item.getId();
-            listings[i][1] = item.getTitle();
-            listings[i][2] = String.format("£%.2f", item.getPrice());
-            listings[i][3] = item.getCondition();
-            listings[i][4] = item.getDescription();
-            i++;
+            if(item.isActive()) {
+                listings[i][0] = item.getId();
+                listings[i][1] = item.getTitle();
+                listings[i][2] = String.format("£%.2f", item.getPrice());
+                listings[i][3] = item.getCondition();
+                listings[i][4] = item.getDescription();
+                i++;
+            }
         }
 
         listingsTable.setModel(new DefaultTableModel(listings,
@@ -251,8 +268,14 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
         
         selectedItem = null;
         bidInput.setText("");
-        selectedName.setText(" ");
-        selectedPrice.setText(" ");
+        selectedName.setText("");
+        selectedPrice.setText("");
+    }
+
+    public boolean validateSubmition() {
+        return !(nameinput.getText().equals("") || 
+                startpriceinput.getText().equals("") || 
+                reserveinput.getText().equals(""));
     }
     
     //-----------------------------------------------Event Listeners-----------------------------------------------------------------------
@@ -262,30 +285,45 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         try {
 
-            if (e.getSource() == refreshButton) {
-                    getListings();
-            } else if (e.getSource() == submitButton) {
-                    String name = nameinput.getText();
-                    float startBid = Float.parseFloat(startpriceinput.getText());
-                    float reserve = Float.parseFloat(reserveinput.getText());
-                    String condition = conditioncombo.getSelectedItem().toString();
-                    String description = descriptioninput.getText();
-                    if(reserve > startBid)
-                        client.remoteAddListing(name, startBid, reserve, description, condition, client.aesEncrypt(client.getId()));
-                    else
-                        JOptionPane.showMessageDialog(null, "Reserve price must be greater than starting price");
+            // Refresh Button
 
-            } else if (e.getSource() == bidButton) {
-                    int itemid = selectedItem.getId();
-                    float bid = Float.parseFloat(bidInput.getText());
-                    float currentbid = selectedItem.getPrice();
-                    if(client.getId() == items.get(itemid).getSeller()) {
-                        if(bid > currentbid)
-                            client.remotePlaceBid(itemid, bid, client.getId());
+            if (e.getSource() == refreshButton) {
+                getListings();
+
+            // Submit Button
+
+            } else if (e.getSource() == submitButton) {
+                System.out.println(validateSubmition());
+                if(validateSubmition())
+                    try {
+                        String name = nameinput.getText();
+                        float startBid = Float.parseFloat(startpriceinput.getText());
+                        float reserve = Float.parseFloat(reserveinput.getText());
+                        String condition = conditioncombo.getSelectedItem().toString();
+                        String description = descriptioninput.getText();
+                        if(reserve > startBid)
+                            client.remoteAddListing(name, startBid, reserve, description, condition, client.aesEncrypt(client.getId()));
                         else
-                            JOptionPane.showMessageDialog(null, "Bid must be greater than current price");
-                    } else
-                        JOptionPane.showMessageDialog(null, "Cannot bid on your own listing");
+                            JOptionPane.showMessageDialog(null, "Reserve price must be greater than starting price");
+                    } catch (NumberFormatException nfe) {
+                        JOptionPane.showMessageDialog(null, "Invalid price entered");
+                    }
+                else
+                    JOptionPane.showMessageDialog(null, "Please fill out all fields");
+            
+            // Bid Button
+            
+            } else if (e.getSource() == bidButton) {
+                int itemid = selectedItem.getId();
+                float bid = Float.parseFloat(bidInput.getText());
+                float currentbid = selectedItem.getPrice();
+                if(client.getId() == items.get(itemid).getSeller()) {
+                    if(bid > currentbid)
+                        client.remotePlaceBid(itemid, bid, client.getId());
+                    else
+                        JOptionPane.showMessageDialog(null, "Bid must be greater than current price");
+                } else
+                    JOptionPane.showMessageDialog(null, "Cannot bid on your own listing");
             }
 
         } catch (RemoteException | InvalidKeySpecException e1) {

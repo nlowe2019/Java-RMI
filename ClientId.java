@@ -15,9 +15,12 @@ public class ClientId implements java.io.Serializable {
         return id;
     }
 
+    public String getName() {
+        return name;
+    }
+
     // prints id number
     public String toString() {
         return Integer.toString(id);
     }
-    
 }

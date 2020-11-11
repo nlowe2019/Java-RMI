@@ -34,6 +34,10 @@ public class AuctionImpl extends java.rmi.server.UnicastRemoteObject implements 
         items.get(itemId).bid(bid, bidder);
     }
 
+    public void closeListing(int itemId) throws RemoteException {
+        items.get(itemId).close();
+    }
+
     public SealedObject getAll(SealedObject clientId) throws RemoteException {
         System.out.println("Request from client " + aesDecrypt(clientId) + " for all listings");
         return aesEncrypt(items);
