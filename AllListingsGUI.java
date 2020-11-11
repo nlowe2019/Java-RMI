@@ -22,17 +22,22 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
     private JLabel conditiontag;
     private JComboBox<String> conditioncombo;
     private JLabel descriptiontag;
-    private JTextField descriptioninput;
+    private JTextArea descriptioninput;
     private JButton submitButton;
 
     private JPanel allResultsPanel;         // Results panel components
     private JButton refreshButton;
     private JTable listingsTable;
     private JScrollPane tableScrollPane;
+    private JLabel selectedName;
+    private JLabel selectedPrice;
+    private JButton bidButton;
+    private JTextField bidInput;
 
     // Auction Data
 
-    ConcurrentHashMap<Integer, AuctionItem> items;
+    private ConcurrentHashMap<Integer, AuctionItem> items;
+    private AuctionItem selectedItem;
 
     public AllListingsGUI(AuctionClient c) {
         client = c;
@@ -45,6 +50,10 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
         listingsTable = new JTable();
         refreshButton = new JButton("Refresh");
         tableScrollPane = new JScrollPane();
+        selectedName = new JLabel("");
+        selectedPrice = new JLabel("");
+        bidButton = new JButton("Place Bid");
+        bidInput = new JTextField("");
 
         addPanel = new JPanel();
         nametag = new JLabel("Name");
@@ -56,8 +65,14 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
         conditiontag = new JLabel("Condition");
         conditioncombo = new JComboBox<>(new DefaultComboBoxModel<>(new String[] { "New", "Used", "Damaged" }));
         descriptiontag = new JLabel("Description");
-        descriptioninput = new JTextField();
+        descriptioninput = new JTextArea();
         submitButton = new JButton("Submit");
+
+        submitButton.addActionListener(this);
+        refreshButton.addActionListener(this);
+        bidButton.addActionListener(this);
+
+        descriptioninput.setLineWrap(true);
 
         // Specifies Add Listing Box Layout
 
@@ -129,25 +144,39 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
 
         allResultsPanel.setBorder(BorderFactory.createTitledBorder("All Results"));
 
-        refreshButton.addActionListener(this);
-
         GroupLayout allResultsPanelLayout = new GroupLayout(allResultsPanel);
         allResultsPanel.setLayout(allResultsPanelLayout);
-        allResultsPanelLayout.setHorizontalGroup(allResultsPanelLayout
-                .createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addGroup(allResultsPanelLayout.createSequentialGroup().addContainerGap()
-                        .addGroup(allResultsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                .addComponent(tableScrollPane, GroupLayout.DEFAULT_SIZE, 392, Short.MAX_VALUE)
-                                .addGroup(allResultsPanelLayout.createSequentialGroup().addGap(0, 0, Short.MAX_VALUE)
-                                        .addComponent(refreshButton, GroupLayout.PREFERRED_SIZE, 101,
-                                                GroupLayout.PREFERRED_SIZE)))
-                        .addContainerGap()));
-        allResultsPanelLayout.setVerticalGroup(allResultsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                .addGroup(GroupLayout.Alignment.TRAILING,
-                        allResultsPanelLayout.createSequentialGroup().addComponent(refreshButton)
-                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(tableScrollPane, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                                .addContainerGap()));
+        allResultsPanelLayout.setHorizontalGroup(
+            allResultsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(allResultsPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(allResultsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(tableScrollPane, GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(refreshButton, GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 101, GroupLayout.PREFERRED_SIZE)
+                    .addGroup(GroupLayout.Alignment.TRAILING, allResultsPanelLayout.createSequentialGroup()
+                        .addComponent(selectedName, GroupLayout.PREFERRED_SIZE, 121, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(selectedPrice, GroupLayout.PREFERRED_SIZE, 73, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, 53, Short.MAX_VALUE)
+                        .addComponent(bidInput, GroupLayout.PREFERRED_SIZE, 80, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(bidButton)))
+                .addContainerGap())
+        );
+        allResultsPanelLayout.setVerticalGroup(
+            allResultsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(GroupLayout.Alignment.TRAILING, allResultsPanelLayout.createSequentialGroup()
+                .addComponent(refreshButton)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(tableScrollPane, GroupLayout.PREFERRED_SIZE, 372, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(allResultsPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(bidButton)
+                    .addComponent(bidInput, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(selectedName)
+                    .addComponent(selectedPrice))
+                .addContainerGap())
+        );
 
         // Orders both panels in parent container
 
@@ -196,8 +225,9 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
 
         listingsTable.setModel(new DefaultTableModel(listings,
                 new String[] { "Item ID", "Name", "Current Bid", "Condition", "Description" }) {
-            Class[] types = new Class[] { java.lang.Integer.class, java.lang.String.class, java.lang.String.class,
-                    java.lang.String.class, java.lang.String.class };
+                private static final long serialVersionUID = 1L;
+                Class[] types = new Class[] { Integer.class, String.class, String.class,
+                    String.class, String.class };
             boolean[] canEdit = new boolean[] { false, false, false, false, false };
 
             public Class getColumnClass(int columnIndex) {
@@ -218,6 +248,11 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
                 rowSelect(evt);
             }
         });
+        
+        selectedItem = null;
+        bidInput.setText("");
+        selectedName.setText(" ");
+        selectedPrice.setText(" ");
     }
     
     //-----------------------------------------------Event Listeners-----------------------------------------------------------------------
@@ -225,19 +260,46 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
     // Used for button clicks
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == refreshButton) {
-            try {
-                getListings();
-            } catch (RemoteException | InvalidKeySpecException e1) {
-                e1.printStackTrace();
+        try {
+
+            if (e.getSource() == refreshButton) {
+                    getListings();
+            } else if (e.getSource() == submitButton) {
+                    String name = nameinput.getText();
+                    float startBid = Float.parseFloat(startpriceinput.getText());
+                    float reserve = Float.parseFloat(reserveinput.getText());
+                    String condition = conditioncombo.getSelectedItem().toString();
+                    String description = descriptioninput.getText();
+                    if(reserve > startBid)
+                        client.remoteAddListing(name, startBid, reserve, description, condition, client.aesEncrypt(client.getId()));
+                    else
+                        JOptionPane.showMessageDialog(null, "Reserve price must be greater than starting price");
+
+            } else if (e.getSource() == bidButton) {
+                    int itemid = selectedItem.getId();
+                    float bid = Float.parseFloat(bidInput.getText());
+                    float currentbid = selectedItem.getPrice();
+                    if(client.getId() == items.get(itemid).getSeller()) {
+                        if(bid > currentbid)
+                            client.remotePlaceBid(itemid, bid, client.getId());
+                        else
+                            JOptionPane.showMessageDialog(null, "Bid must be greater than current price");
+                    } else
+                        JOptionPane.showMessageDialog(null, "Cannot bid on your own listing");
             }
+
+        } catch (RemoteException | InvalidKeySpecException e1) {
+                e1.printStackTrace();
         }
     }
 
     // Waits for table rows to be selected
     private void rowSelect(MouseEvent evt) {                                     
         JTable source = (JTable)evt.getSource();
-               int row = source.rowAtPoint( evt.getPoint() );
-               String s=source.getModel().getValueAt(row, 0)+"";
+        int row = source.rowAtPoint( evt.getPoint() );
+        int itemid = Integer.parseInt(source.getModel().getValueAt(row, 0) + "");
+        selectedItem = items.get(itemid);
+        selectedName.setText(selectedItem.getTitle());
+        selectedPrice.setText(String.format("£%.2f", selectedItem.getPrice()));
     }
 }

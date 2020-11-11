@@ -13,6 +13,7 @@ public class AuctionImpl extends java.rmi.server.UnicastRemoteObject implements 
     private static final long serialVersionUID = 6192197272342675756L;
 
     private ConcurrentHashMap<Integer, AuctionItem> items;
+    private int keyCounter = 0;
 
     // Implementations must have an explicit constructor in order to declare the
     // RemoteException exception
@@ -22,25 +23,30 @@ public class AuctionImpl extends java.rmi.server.UnicastRemoteObject implements 
         items = new ConcurrentHashMap<>();
     }
 
-    public SealedObject getSpec(int itemId, SealedObject clientId)
-            throws java.rmi.RemoteException {
+    public SealedObject getSpec(int itemId, SealedObject clientId) throws java.rmi.RemoteException {
         // Decrypt client id
         System.out.println("Request from client " + aesDecrypt(clientId) + " for item " + itemId);
         // Return requested auction item as SealedObject
         return (aesEncrypt(items.get(itemId)));
     }
 
-    public void addListing(int itemId, String itemTitle, float price, String itemDescription, String itemCondition, SealedObject seller)
-            throws java.rmi.RemoteException {
-        // Instantiate new AuctionItem
-        AuctionItem item = new AuctionItem(itemId, itemTitle, price, itemDescription, itemCondition, (ClientId)aesDecrypt(seller));
-        // Add new item to hashmap
-        items.put(item.getId(), item);
+    public void placeBid(int itemId, float bid, ClientId bidder) throws RemoteException {
+        items.get(itemId).bid(bid, bidder);
     }
 
     public SealedObject getAll(SealedObject clientId) throws RemoteException {
         System.out.println("Request from client " + aesDecrypt(clientId) + " for all listings");
         return aesEncrypt(items);
+    }
+
+    public void addListing(String itemTitle, float price, float reserve, String itemDescription, String itemCondition, SealedObject seller)
+            throws java.rmi.RemoteException {
+        if(reserve > price) {
+            AuctionItem item = new AuctionItem(keyCounter, itemTitle, price, reserve, itemDescription, itemCondition, (ClientId)aesDecrypt(seller));
+            System.out.println("Request from client " + aesDecrypt(seller) + " to add: \n" + item);
+            keyCounter++;
+            items.put(item.getId(), item);
+        }
     }
 
     //---------------------------------------------------Encrpytion Methods----------------------------------------------------//

@@ -9,15 +9,26 @@ public class AuctionItem implements java.io.Serializable{
     private String itemDescription;
     private String itemCondition;
     private ClientId seller;
-    private ClientId bidder;
+    private ClientId highestBidder;
 
-    public AuctionItem(int itemId, String itemTitle, float price, String itemDescription, String itemCondition, ClientId seller) {
+    public AuctionItem(int itemId, String itemTitle, float price, float reserve, String itemDescription, String itemCondition, ClientId seller) {
         this.itemId = itemId;
         this.itemTitle = itemTitle;
         this.itemDescription = itemDescription;
         this.itemCondition = itemCondition;
         this.price = price;
+        this.reserve = reserve;
         this.seller = seller;
+        if(itemDescription == "")
+            itemDescription = "No Description.";
+
+    }
+
+    public void bid(float bid, ClientId bidder) {
+        if(bid > price && bidder != seller) {
+            price = bid;
+            highestBidder = bidder;
+        }
     }
 
     public int getId() {
@@ -42,7 +53,7 @@ public class AuctionItem implements java.io.Serializable{
         return seller;
     }
     public ClientId getBidder() {
-        return bidder;
+        return highestBidder;
     }
     
     public String toString() {

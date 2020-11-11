@@ -1,0 +1,35 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Debug (Launch) - Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-AuctionClient<Java-RMI_d86f1541>",
+            "request": "launch",
+            "mainClass": "AuctionClient",
+            "projectName": "Java-RMI_d86f1541"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-AuctionServer<Java-RMI_d86f1541>",
+            "request": "launch",
+            "mainClass": "AuctionServer",
+            "projectName": "Java-RMI_d86f1541"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch)-KeyManager<Java-RMI_d86f1541>",
+            "request": "launch",
+            "mainClass": "KeyManager",
+            "projectName": "Java-RMI_d86f1541"
+        }
+    ]
+}

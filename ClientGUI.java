@@ -10,9 +10,10 @@ public class ClientGUI {
     private JTabbedPane tab;            // Tabbed Pane - Switches between pages
     private ArrayList<GUIPage> pages;   // List of pages to add to tabbed pane
 
-    public ClientGUI(AuctionClient client) {
+    public ClientGUI(AuctionClient c) {
 
-        this.client = client;
+        client = c;
+        System.out.println(client);
 
         // Initialise Swing Components
         frame = new JFrame();
@@ -23,6 +24,7 @@ public class ClientGUI {
 
         pages.add(new SearchIdGUI(client));
         pages.add(new AllListingsGUI(client));
+        pages.add(new MyListingsGUI(client));
 
         // Adds pages to Tabbed Pane
 
