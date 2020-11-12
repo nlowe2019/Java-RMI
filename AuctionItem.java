@@ -1,4 +1,7 @@
-public class AuctionItem implements java.io.Serializable{
+import java.io.Serializable;
+import java.util.HashMap;
+
+public class AuctionItem implements Serializable {
     
     private static final long serialVersionUID = 6232100136411267879L;
 
@@ -12,6 +15,8 @@ public class AuctionItem implements java.io.Serializable{
     private ClientId highestBidder;
     private boolean active;
 
+    private HashMap<Integer, Float> bidders;
+
     public AuctionItem(int itemId, String itemTitle, float price, float reserve, String itemDescription, String itemCondition, ClientId seller) {
         this.itemId = itemId;
         this.itemTitle = itemTitle;
@@ -21,15 +26,18 @@ public class AuctionItem implements java.io.Serializable{
         this.reserve = reserve;
         this.seller = seller;
         this.active = true;
-        System.out.println(active);
         if(itemDescription.equals(""))
             itemDescription = "No Description.";
+
+        bidders = new HashMap<Integer, Float>();
     }
 
     public void bid(float bid, ClientId bidder) {
         if(bid > price && bidder != seller) {
             price = bid;
             highestBidder = bidder;
+
+            bidders.put(bidder.getId(), bid);
         }
     }
 
@@ -62,6 +70,12 @@ public class AuctionItem implements java.io.Serializable{
     }
     public void close() {
         active = false;
+    }
+    public ClientId getHighestBidder() {
+        return highestBidder;
+    }
+    public HashMap<Integer, Float> getBidders() {
+        return bidders;
     }
     
     public String toString() {

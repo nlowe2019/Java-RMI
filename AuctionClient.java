@@ -1,6 +1,6 @@
 import javax.crypto.*;
 import java.rmi.Naming;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 import java.io.IOException;
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -18,6 +18,7 @@ public class AuctionClient {
 
     public static void main(String[] args) {
         new AuctionClient(1);
+        new AuctionClient(2);
     }
 
     public AuctionClient(int n) {
@@ -68,8 +69,12 @@ public class AuctionClient {
         return (AuctionItem) aesDecrypt(item);
     }
 
-    public ConcurrentHashMap<Integer, AuctionItem> remoteGetAll() throws RemoteException, InvalidKeySpecException {
-        return (ConcurrentHashMap<Integer, AuctionItem>) aesDecrypt(auction.getAll(aesEncrypt(id)));
+    public HashMap<Integer, AuctionItem> remoteGetAll() throws RemoteException, InvalidKeySpecException {
+        return (HashMap<Integer, AuctionItem>) aesDecrypt(auction.getAll(aesEncrypt(id)));
+    }
+
+    public HashMap<Integer, AuctionItem> remoteGetUserBids() throws RemoteException, InvalidKeySpecException {
+        return (HashMap<Integer, AuctionItem>) auction.getUserBids(id);
     }
 
     public void remoteAddListing(String itemTitle, float price, float reserve, String itemDescription, String itemCondition, SealedObject seller)
@@ -77,8 +82,8 @@ public class AuctionClient {
         auction.addListing(itemTitle, price, reserve, itemDescription, itemCondition, seller);
     }
 
-    public void remotePlaceBid(int itemId, float bid, ClientId bidder) throws RemoteException {
-        auction.placeBid(itemId, bid, bidder);
+    public void remotePlaceBid(int itemId, float bid) throws RemoteException {
+        auction.placeBid(itemId, bid, id);
     }
 
     public void remoteCloseListing(int itemId) throws RemoteException {

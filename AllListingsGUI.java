@@ -5,7 +5,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.event.*;
 import java.rmi.RemoteException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
 public class AllListingsGUI extends GUIPage implements ActionListener {
 
@@ -38,7 +38,7 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
 
     // Auction Data
 
-    private ConcurrentHashMap<Integer, AuctionItem> items;
+    private HashMap<Integer, AuctionItem> items;
     private AuctionItem selectedItem;
 
     public AllListingsGUI(AuctionClient c) {
@@ -317,9 +317,9 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
                 int itemid = selectedItem.getId();
                 float bid = Float.parseFloat(bidInput.getText());
                 float currentbid = selectedItem.getPrice();
-                if(client.getId() == items.get(itemid).getSeller()) {
+                if(client.getId().getId() != items.get(itemid).getSeller().getId()) {
                     if(bid > currentbid)
-                        client.remotePlaceBid(itemid, bid, client.getId());
+                        client.remotePlaceBid(itemid, bid);
                     else
                         JOptionPane.showMessageDialog(null, "Bid must be greater than current price");
                 } else

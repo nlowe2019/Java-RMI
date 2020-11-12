@@ -13,7 +13,6 @@ public class ClientGUI {
     public ClientGUI(AuctionClient c) {
 
         client = c;
-        System.out.println(client);
 
         // Initialise Swing Components
         frame = new JFrame();
@@ -22,9 +21,10 @@ public class ClientGUI {
 
         // Add desired GUI pages
 
-        pages.add(new SearchIdGUI(client));
         pages.add(new AllListingsGUI(client));
         pages.add(new MyListingsGUI(client));
+        pages.add(new BidsGUI(client));
+        pages.add(new SearchIdGUI(client));
 
         // Adds pages to Tabbed Pane
 

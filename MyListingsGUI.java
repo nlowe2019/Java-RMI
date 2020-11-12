@@ -3,7 +3,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.event.*;
 import java.rmi.RemoteException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
 public class MyListingsGUI extends GUIPage implements ActionListener {
 
@@ -42,7 +42,7 @@ public class MyListingsGUI extends GUIPage implements ActionListener {
 
     // Auction Data
 
-    private ConcurrentHashMap<Integer, AuctionItem> items;
+    private HashMap<Integer, AuctionItem> items;
     private AuctionItem selectedItem;
 
     public MyListingsGUI(AuctionClient c) {

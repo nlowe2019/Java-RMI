@@ -2,6 +2,7 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.HashMap;
 
 import javax.crypto.SealedObject;
 
@@ -14,6 +15,10 @@ public interface Auction extends java.rmi.Remote {
 
     // Returns items collection
     public SealedObject getAll(SealedObject ClientId)
+        throws RemoteException;
+
+    // Returns set of items which specified user has bidded on
+    public HashMap<Integer, AuctionItem> getUserBids(ClientId ClientId)
         throws RemoteException;
 
     // adds new item to auction item hashmap
