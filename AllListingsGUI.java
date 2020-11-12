@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
@@ -9,6 +11,7 @@ import java.util.HashMap;
 
 public class AllListingsGUI extends GUIPage implements ActionListener {
 
+    private static final long serialVersionUID = -7751215197630930587L;
     private String title = "Active Listings";
     private AuctionClient client;
 
@@ -67,7 +70,7 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
         conditiontag = new JLabel("Condition");
         conditioncombo = new JComboBox<>(new DefaultComboBoxModel<>(new String[] { "New", "Used", "Damaged" }));
         descriptiontag = new JLabel("Description");
-        descriptioninput = new JTextArea();
+        descriptioninput = new JTextArea("");
         submitButton = new JButton("Submit");
 
         bidButton.setEnabled(false);
@@ -90,8 +93,9 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
         descriptioninput.setLineWrap(true);
 
         // Specifies Add Listing Box Layout
-
-        addPanel.setBorder(BorderFactory.createTitledBorder("Add Item"));
+        
+        Border loweredetched = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+        addPanel.setBorder(BorderFactory.createTitledBorder(loweredetched, "Add Item"));
 
         GroupLayout addPanelLayout = new GroupLayout(addPanel);
         addPanel.setLayout(addPanelLayout);
@@ -157,7 +161,7 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
 
         // Specifies Results Box Layout
 
-        allResultsPanel.setBorder(BorderFactory.createTitledBorder("All Results"));
+        allResultsPanel.setBorder(BorderFactory.createTitledBorder(loweredetched, "All Results"));
 
         GroupLayout allResultsPanelLayout = new GroupLayout(allResultsPanel);
         allResultsPanel.setLayout(allResultsPanelLayout);
@@ -195,19 +199,19 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
 
         // Orders both panels in parent container
 
-        GroupLayout thisLayout = new GroupLayout(this);
-        this.setLayout(thisLayout);
-        thisLayout.setHorizontalGroup(thisLayout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(thisLayout
+        GroupLayout pageLayout = new GroupLayout(this);
+        this.setLayout(pageLayout);
+        pageLayout.setHorizontalGroup(pageLayout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(pageLayout
                 .createSequentialGroup().addContainerGap()
                 .addComponent(addPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
                         GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(allResultsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap()));
-        thisLayout
-                .setVerticalGroup(thisLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                        .addGroup(GroupLayout.Alignment.TRAILING, thisLayout.createSequentialGroup().addContainerGap()
-                                .addGroup(thisLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+        pageLayout
+                .setVerticalGroup(pageLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                        .addGroup(GroupLayout.Alignment.TRAILING, pageLayout.createSequentialGroup().addContainerGap()
+                                .addGroup(pageLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
                                         .addComponent(addPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
                                                 Short.MAX_VALUE)
                                         .addComponent(allResultsPanel, GroupLayout.DEFAULT_SIZE,
@@ -293,7 +297,6 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
             // Submit Button
 
             } else if (e.getSource() == submitButton) {
-                System.out.println(validateSubmition());
                 if(validateSubmition())
                     try {
                         String name = nameinput.getText();

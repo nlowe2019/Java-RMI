@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
@@ -9,6 +11,7 @@ import java.util.HashMap;
 
 public class BidsGUI extends GUIPage implements ActionListener {
 
+    private static final long serialVersionUID = -6464830615189770415L;
     private String title = "Bids";
     private AuctionClient client;
 
@@ -89,7 +92,9 @@ public class BidsGUI extends GUIPage implements ActionListener {
 
         // Specifies Add Listing Box Layout
 
-        detailsPanel.setBorder(BorderFactory.createTitledBorder("Add Item"));
+        
+        Border loweredetched = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+        detailsPanel.setBorder(BorderFactory.createTitledBorder(loweredetched, "Add Item"));
 
         GroupLayout detailsPanelLayout = new GroupLayout(detailsPanel);
         detailsPanel.setLayout(detailsPanelLayout);
@@ -158,7 +163,7 @@ public class BidsGUI extends GUIPage implements ActionListener {
 
         // Specifies Results Box Layout
 
-        allResultsPanel.setBorder(BorderFactory.createTitledBorder("All Results"));
+        allResultsPanel.setBorder(BorderFactory.createTitledBorder(loweredetched, "All Results"));
 
         GroupLayout allResultsPanelLayout = new GroupLayout(allResultsPanel);
         allResultsPanel.setLayout(allResultsPanelLayout);

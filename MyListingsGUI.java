@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.*;
 import java.rmi.RemoteException;
@@ -7,6 +9,7 @@ import java.util.HashMap;
 
 public class MyListingsGUI extends GUIPage implements ActionListener {
 
+    private static final long serialVersionUID = -3154274472897087620L;
     private String title = "My Listings";
     private AuctionClient client;
 
@@ -83,9 +86,9 @@ public class MyListingsGUI extends GUIPage implements ActionListener {
         refreshButton.addActionListener(this);
         closeButton.addActionListener(this);
         closedPanel.setVisible(false);
-
         
-        detailsPanel.setBorder(BorderFactory.createTitledBorder("Listing Details"));
+        Border loweredetched = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+        detailsPanel.setBorder(BorderFactory.createTitledBorder(loweredetched, "Listing Details"));
 
         GroupLayout closedPanelLayout = new GroupLayout(closedPanel);
         closedPanel.setLayout(closedPanelLayout);
@@ -199,7 +202,8 @@ public class MyListingsGUI extends GUIPage implements ActionListener {
                 .addContainerGap())
         );
 
-        tablePanel.setBorder(BorderFactory.createTitledBorder("My Listings"));
+        tablePanel.setBorder(BorderFactory.createTitledBorder(loweredetched, "My Listings"));
+
 
         GroupLayout tablePanelLayout = new GroupLayout(tablePanel);
         tablePanel.setLayout(tablePanelLayout);
@@ -223,22 +227,22 @@ public class MyListingsGUI extends GUIPage implements ActionListener {
                 .addContainerGap())
         );
 
-        GroupLayout thisLayout = new GroupLayout(this);
-        this.setLayout(thisLayout);
-        thisLayout.setHorizontalGroup(
-            thisLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(thisLayout.createSequentialGroup()
+        GroupLayout pageLayout = new GroupLayout(this);
+        this.setLayout(pageLayout);
+        pageLayout.setHorizontalGroup(
+            pageLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(pageLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(detailsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(tablePanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
-        thisLayout.setVerticalGroup(
-            thisLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(GroupLayout.Alignment.TRAILING, thisLayout.createSequentialGroup()
+        pageLayout.setVerticalGroup(
+            pageLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(GroupLayout.Alignment.TRAILING, pageLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(thisLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                .addGroup(pageLayout.createParallelGroup(GroupLayout.Alignment.TRAILING)
                     .addComponent(tablePanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(detailsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -312,7 +316,7 @@ public class MyListingsGUI extends GUIPage implements ActionListener {
             status.setText("Successful");
             finalBid.setText(String.format("£%.2f", selectedItem.getPrice()));
             buyerName.setText(selectedItem.getBidder().getName());
-            email.setText("test@gmail.com");
+            email.setText(selectedItem.getBidder().getEmail());
         } else if(!selectedItem.isActive() && !(selectedItem.getPrice() > selectedItem.getReserve())) {
             status.setText("Unsuccessful");
             closedPanel.setVisible(false);

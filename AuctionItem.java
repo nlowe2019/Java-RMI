@@ -27,7 +27,7 @@ public class AuctionItem implements Serializable {
         this.seller = seller;
         this.active = true;
         if(itemDescription.equals(""))
-            itemDescription = "No Description.";
+            this.itemDescription = "No Description.";
 
         bidders = new HashMap<Integer, Float>();
     }

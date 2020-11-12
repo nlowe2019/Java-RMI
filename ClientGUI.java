@@ -21,6 +21,7 @@ public class ClientGUI {
 
         // Add desired GUI pages
 
+        pages.add(new LoginGUI(client));
         pages.add(new AllListingsGUI(client));
         pages.add(new MyListingsGUI(client));
         pages.add(new BidsGUI(client));

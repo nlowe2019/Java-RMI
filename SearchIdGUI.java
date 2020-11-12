@@ -6,6 +6,7 @@ import java.security.spec.InvalidKeySpecException;
 
 public class SearchIdGUI extends GUIPage implements ActionListener{
 
+    private static final long serialVersionUID = -2297762084071029668L;
     private String title = "Search ID";
     private AuctionClient client;
 
@@ -120,20 +121,20 @@ public class SearchIdGUI extends GUIPage implements ActionListener{
 
         // Orders input and results panels in parent container
 
-        GroupLayout thisLayout = new GroupLayout(this);
-        this.setLayout(thisLayout);
-        thisLayout.setHorizontalGroup(
-            thisLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-            .addGroup(thisLayout.createSequentialGroup()
+        GroupLayout pageLayout = new GroupLayout(this);
+        this.setLayout(pageLayout);
+        pageLayout.setHorizontalGroup(
+            pageLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(pageLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(thisLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addGroup(pageLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(inputPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(resultsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
-        thisLayout.setVerticalGroup(
-            thisLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(thisLayout.createSequentialGroup()
+        pageLayout.setVerticalGroup(
+            pageLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pageLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(inputPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)

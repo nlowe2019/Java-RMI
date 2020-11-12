@@ -12,7 +12,6 @@ import java.rmi.NotBoundException;
 
 public class AuctionClient {
 
-    private ClientGUI gui;
     private ClientId id;
     private Auction auction;
 
@@ -23,8 +22,8 @@ public class AuctionClient {
 
     public AuctionClient(int n) {
 
-        id = new ClientId(n);
-        gui = new ClientGUI(this);
+        id = new ClientId(n, "nick@nickmail.com");
+        new ClientGUI(this);
 
         try {
             // Creates reference to the remote object through the remiregistry
