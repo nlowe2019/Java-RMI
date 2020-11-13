@@ -2,8 +2,9 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import java.awt.event.*;
+import java.io.IOException;
 import java.rmi.RemoteException;
-import java.security.spec.InvalidKeySpecException;
+import java.security.NoSuchAlgorithmException;
 
 public class LoginGUI extends GUIPage implements ActionListener {
 
@@ -26,6 +27,8 @@ public class LoginGUI extends GUIPage implements ActionListener {
 
     private JButton loginButton;
     private JButton registerButton;
+
+    private ClientGUI maingui;
 
     public LoginGUI(AuctionClient c) {
         client = c;
@@ -136,12 +139,15 @@ public class LoginGUI extends GUIPage implements ActionListener {
         return title;
     }
 
-    public void login() {
-        System.out.println("login test");
+    public void login() throws RemoteException, NoSuchAlgorithmException, IOException {
+        String email = loginEmailInput.getText();
+        client.remoteLoginUser(email);
     }
 
-    public void register() {
-        System.out.println("register test");
+    public void register() throws RemoteException, NoSuchAlgorithmException, IOException {
+        String email = registerEmailInput.getText();
+        String name = registerNameInput.getText();
+        client.remoteRegisterUser(email, name);
     }
 
     @Override
@@ -155,7 +161,6 @@ public class LoginGUI extends GUIPage implements ActionListener {
                     JOptionPane.showMessageDialog(null, "Please enter your e-mail.");
                 } else {
                     login();
-                    client.remoteGetSpec(0);
                 }
             }
 
@@ -166,11 +171,10 @@ public class LoginGUI extends GUIPage implements ActionListener {
                     JOptionPane.showMessageDialog(null, "Please fill out all fields.");
                 } else {
                     register();
-                    client.remoteGetSpec(0);
                 }
             }
 
-        } catch (RemoteException | InvalidKeySpecException exception) {
+        } catch (NoSuchAlgorithmException | IOException exception) {
             exception.printStackTrace();
         }
     }

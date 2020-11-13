@@ -17,19 +17,8 @@ public class ClientGUI {
         // Initialise Swing Components
         frame = new JFrame();
         tab = new JTabbedPane();
-        pages = new ArrayList<>();
 
-        // Add desired GUI pages
-
-        pages.add(new LoginGUI(client));
-        pages.add(new AllListingsGUI(client));
-        pages.add(new MyListingsGUI(client));
-        pages.add(new BidsGUI(client));
-        pages.add(new SearchIdGUI(client));
-
-        // Adds pages to Tabbed Pane
-
-        pages.forEach((page) -> tab.addTab(page.getTitle(), page)); 
+        tab.addTab("Login", new LoginGUI(client)); 
 
         GroupLayout layout = new GroupLayout(frame.getContentPane());
         frame.getContentPane().setLayout(layout);
@@ -46,5 +35,24 @@ public class ClientGUI {
         frame.setTitle("Auction");
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public void login() {
+
+        tab.removeAll();
+
+        pages = new ArrayList<>();
+
+        // Add desired GUI pages
+
+        pages.add(new AllListingsGUI(client));
+        pages.add(new MyListingsGUI(client));
+        pages.add(new BidsGUI(client));
+        pages.add(new SearchIdGUI(client));
+
+        // Adds pages to Tabbed Pane
+
+        pages.forEach((page) -> tab.addTab(page.getTitle(), page)); 
+
     }
 }

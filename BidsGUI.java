@@ -65,7 +65,7 @@ public class BidsGUI extends GUIPage implements ActionListener {
         name = new JLabel("");
         currentBidTag = new JLabel("Starting Price");
         currentBid = new JLabel("");
-        myBidTag = new JLabel("Reserve Price");
+        myBidTag = new JLabel("My Bid");
         myBid = new JLabel("");
         conditionTag = new JLabel("Condition");
         condition = new JLabel("");
@@ -246,14 +246,9 @@ public class BidsGUI extends GUIPage implements ActionListener {
 
         listingsTable.setModel(new DefaultTableModel(listings,
                 new String[] { "Item ID", "Name", "Current Bid", "Condition", "Description" }) {
-                private static final long serialVersionUID = 1L;
-                Class[] types = new Class[] { Integer.class, String.class, String.class,
-                    String.class, String.class };
+            
+            private static final long serialVersionUID = 1L;
             boolean[] canEdit = new boolean[] { false, false, false, false, false };
-
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit[columnIndex];
@@ -280,15 +275,20 @@ public class BidsGUI extends GUIPage implements ActionListener {
     }
 
     public void showResults() {
+
         name.setText(selectedItem.getTitle());
         currentBid.setText(String.format("£%.2f", selectedItem.getPrice()));
         myBid.setText(String.format("£%.2f", selectedItem.getBidders().get(client.getId().getId())));
         condition.setText(selectedItem.getCondition());
         description.setText("<html><p style=\"width:180px\">" + selectedItem.getDescription() + "</p></html>");
+
         if(selectedItem.isActive()) {
-            status.setText("Active");
+            if(selectedItem.getHighestBidder().getId() == client.getId().getId())
+                status.setText("Highest Bidder");
+            else
+                status.setText("Outbid");
         } else {
-            if(!selectedItem.isActive() && selectedItem.getHighestBidder().getId() == client.getId().getId())
+            if(selectedItem.getHighestBidder().getId() == client.getId().getId())
                 status.setText("Successful");
             else
                 status.setText("Unsuccessful");
@@ -313,10 +313,14 @@ public class BidsGUI extends GUIPage implements ActionListener {
                 int itemid = selectedItem.getId();
                 float bid = Float.parseFloat(bidInput.getText());
                 float currentbid = selectedItem.getPrice();
-                if(bid > currentbid)
-                    client.remotePlaceBid(itemid, bid);
-                else
-                    JOptionPane.showMessageDialog(null, "Bid must be greater than current price");
+                if(selectedItem.isActive()) {
+                    if(bid > currentbid)
+                        client.remotePlaceBid(itemid, bid);
+                    else
+                        JOptionPane.showMessageDialog(null, "Bid must be greater than current price.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "This item is no longer active.");
+                }
             }
 
         } catch (RemoteException | InvalidKeySpecException e1) {

@@ -227,33 +227,26 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
     // Updates table with listings from auction server
     public void getListings() throws RemoteException, InvalidKeySpecException {
         
-        items = client.remoteGetAll();
+        items = client.remoteGetActiveListings();
 
         Object[][] listings = new Object[items.keySet().size()][5];
         int i = 0;
         for (Integer key : items.keySet())
         {
             AuctionItem item = items.get(key);
-            if(item.isActive()) {
                 listings[i][0] = item.getId();
                 listings[i][1] = item.getTitle();
                 listings[i][2] = String.format("£%.2f", item.getPrice());
                 listings[i][3] = item.getCondition();
                 listings[i][4] = item.getDescription();
                 i++;
-            }
         }
 
         listingsTable.setModel(new DefaultTableModel(listings,
-                new String[] { "Item ID", "Name", "Current Bid", "Condition", "Description" }) {
-                private static final long serialVersionUID = 1L;
-                Class[] types = new Class[] { Integer.class, String.class, String.class,
-                    String.class, String.class };
-            boolean[] canEdit = new boolean[] { false, false, false, false, false };
+            new String[] { "Item ID", "Name", "Current Bid", "Condition", "Description" }) {
 
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
+            private static final long serialVersionUID = 1L;
+            boolean[] canEdit = new boolean[] { false, false, false, false, false };
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit[columnIndex];
@@ -305,7 +298,7 @@ public class AllListingsGUI extends GUIPage implements ActionListener {
                         String condition = conditioncombo.getSelectedItem().toString();
                         String description = descriptioninput.getText();
                         if(reserve > startBid)
-                            client.remoteAddListing(name, startBid, reserve, description, condition, client.aesEncrypt(client.getId()));
+                            client.remoteAddListing(name, startBid, reserve, description, condition);
                         else
                             JOptionPane.showMessageDialog(null, "Reserve price must be greater than starting price");
                     } catch (NumberFormatException nfe) {

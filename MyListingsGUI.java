@@ -252,31 +252,24 @@ public class MyListingsGUI extends GUIPage implements ActionListener {
     // Updates table with listings from auction server
     public void getMyListings() throws RemoteException, InvalidKeySpecException {
         
-        items = client.remoteGetAll();
+        items = client.remoteGetMyListings();
 
         Object[][] listings = new Object[items.keySet().size()][4];
         int i = 0;
         for (Integer key : items.keySet())
         {
             AuctionItem item = items.get(key);
-            if(item.getSeller().getId() == client.getId().getId()) {
                 listings[i][0] = item.getId();
                 listings[i][1] = item.getTitle();
                 listings[i][2] = String.format("£%.2f", item.getPrice());
                 listings[i][3] = String.format("£%.2f", item.getReserve());
                 i++;
-            }
         }
 
         myListingsTable.setModel(new DefaultTableModel(listings,
             new String[] { "Item ID", "Name", "Current Bid", "Reserve Price"}) {
             private static final long serialVersionUID = 1L;
-            Class[] types = new Class[] { Integer.class, String.class, String.class, String.class };
             boolean[] canEdit = new boolean[] { false, false, false, false};
-
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit[columnIndex];

@@ -6,9 +6,9 @@ public class ClientId implements java.io.Serializable {
     private String name;
     private String email;
 
-    public ClientId(int id, String email) {
+    public ClientId(int id, String email, String name) {
         this.id = id;
-        this.name = "Jim";
+        this.name = name;
         this.email = email;
     }
 
@@ -28,5 +28,9 @@ public class ClientId implements java.io.Serializable {
     // prints id number
     public String toString() {
         return Integer.toString(id);
+    }
+
+    public boolean equals(ClientId clientid) {
+        return (this.id == clientid.getId());
     }
 }
