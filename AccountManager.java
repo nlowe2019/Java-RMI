@@ -6,19 +6,21 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class AccountManager {
 
+    // Generate new shared key on account registration
     public static SecretKey generateKey() throws NoSuchAlgorithmException {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         keyGenerator.init(256);
         return keyGenerator.generateKey();
     }
 
-    public static void newUser(String email, String name) throws IOException, NoSuchAlgorithmException, FileNotFoundException,
+    // Writes new user details to file
+    public static boolean newUser(String email, String name) throws IOException, NoSuchAlgorithmException, FileNotFoundException,
             InvalidKeySpecException {
 
-        File userdata = new File("users/" + email + ".txt");
+        // If user does not exist
+        if(!(new File("users/" + email + ".txt").isFile())) {       
 
-        if(!userdata.exists()){
-
+            File userdata = new File("users/" + email + ".txt");
             userdata.createNewFile();
             SecretKey key = generateKey();
             // encode key as byte array
@@ -35,9 +37,12 @@ public class AccountManager {
             PrintWriter printWriter = new PrintWriter(fileWriter);
             printWriter.printf("\n" + id + "\n" + email + "\n" + name);
             printWriter.close();
+            return true;
         }
+        return false;
     }
 
+    // Return clientId object containing user data
     public static ClientId getUser(String email) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
 
         File userdata = new File("users/" + email + ".txt");
@@ -55,6 +60,7 @@ public class AccountManager {
         return new ClientId(id, email, name);
     }
 
+    // Generates new id number depending on number of registered users
     public static int newUserId() throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
         
         File userdata = new File("userCount.txt");
@@ -73,6 +79,7 @@ public class AccountManager {
         return n;
     }
 
+    // Reads key bytes from file
     public static SecretKey loadKey(String email) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException
     {
         File file = new File("users/" + email + ".txt");
@@ -81,5 +88,6 @@ public class AccountManager {
         dis.read(encoded, 0, 32);
         dis.close();
 
-        return new SecretKeySpec(encoded, "AES");    }
+        return new SecretKeySpec(encoded, "AES");
+    }
 }

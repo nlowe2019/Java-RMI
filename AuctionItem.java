@@ -5,17 +5,17 @@ public class AuctionItem implements Serializable {
     
     private static final long serialVersionUID = 6232100136411267879L;
 
-    private int itemId;
-    private String itemTitle;
-    private float price;
-    private float reserve;
-    private String itemDescription;
-    private String itemCondition;
-    private ClientId seller;
-    private ClientId highestBidder;
-    private boolean active;
+    private int itemId;                 // Unique id number
+    private String itemTitle;           // Item name
+    private float price;                // Current price of item
+    private float reserve;              // Minimum bid for item to sell
+    private String itemDescription;     // Short description of item
+    private String itemCondition;       // Condition of item
+    private ClientId seller;            // Seller ClientId
+    private ClientId highestBidder;     // Highest bidders ClientId
+    private boolean active;             // True/False if active or not
 
-    private HashMap<Integer, Float> bidders;
+    private HashMap<Integer, Float> bidders;    // Contains all bidders and their last bid
 
     public AuctionItem(int itemId, String itemTitle, float price, float reserve, String itemDescription, String itemCondition, ClientId seller) {
         this.itemId = itemId;
@@ -33,13 +33,17 @@ public class AuctionItem implements Serializable {
     }
 
     public void bid(float bid, ClientId bidder) {
-        if(bid > price && bidder != seller) {
-            price = bid;
-            highestBidder = bidder;
+        price = bid;
+        highestBidder = bidder;
 
-            bidders.put(bidder.getId(), bid);
-        }
+        if(bidders.containsKey(bidder.getId()))
+            bidders.remove(bidder.getId());
+            
+        // records all bidders in hashmap
+        bidders.put(bidder.getId(), bid);
     }
+
+    //-------------------------------------------Get Methods------------------------------------------------------------------
 
     public int getId() {
         return itemId;

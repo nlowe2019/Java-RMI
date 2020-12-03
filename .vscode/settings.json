@@ -1,0 +1,7 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "C:\\Users\\nplow\\Documents\\ComputerScience\\Part 2\\311\\CW2\\Java-RMI\\lib\\jgroups-3.6.14.Final.jar"
+    ],
+    "maven.view": "hierarchical"
+}

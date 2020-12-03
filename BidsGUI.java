@@ -49,6 +49,122 @@ public class BidsGUI extends GUIPage implements ActionListener {
         buildPage();
     }
 
+    // Updates table with listings from auction server
+    public void getListings() throws RemoteException, InvalidKeySpecException {
+        
+        items = client.remoteGetUserBids();
+
+        Object[][] listings = new Object[items.keySet().size()][5];
+        int i = 0;
+        for (Integer key : items.keySet())
+        {
+            AuctionItem item = items.get(key);
+            listings[i][0] = item.getId();
+            listings[i][1] = item.getTitle();
+            listings[i][2] = String.format("£%.2f", item.getPrice());
+            listings[i][3] = item.getCondition();
+            listings[i][4] = item.getDescription();
+            i++;
+        }
+
+        listingsTable.setModel(new DefaultTableModel(listings,
+                new String[] { "Item ID", "Name", "Current Bid", "Condition", "Description" }) {
+            
+            private static final long serialVersionUID = 1L;
+            boolean[] canEdit = new boolean[] { false, false, false, false, false };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit[columnIndex];
+            }
+        });
+        listingsTable.getColumnModel().getColumn(0).setPreferredWidth(40);
+        listingsTable.getColumnModel().getColumn(1).setPreferredWidth(100);
+        listingsTable.getColumnModel().getColumn(2).setPreferredWidth(60);
+        listingsTable.getColumnModel().getColumn(3).setPreferredWidth(46);
+        tableScrollPane.setViewportView(listingsTable);
+        listingsTable.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                rowSelect(evt);
+            }
+        });
+        
+        selectedItem = null;
+        bidInput.setText("");
+        selectedName.setText("");
+        selectedPrice.setText("");
+        
+        if(selectedItem != null)
+            selectedItem = items.get(selectedItem.getId());
+    }
+
+    public void showResults() {
+
+        name.setText(selectedItem.getTitle());
+        currentBid.setText(String.format("£%.2f", selectedItem.getPrice()));
+        myBid.setText(String.format("£%.2f", selectedItem.getBidders().get(client.getId().getId())));
+        condition.setText(selectedItem.getCondition());
+        description.setText("<html><p style=\"width:180px\">" + selectedItem.getDescription() + "</p></html>");
+
+        if(selectedItem.isActive()) {
+            if(selectedItem.getHighestBidder().getId() == client.getId().getId())
+                status.setText("Highest Bidder");
+            else
+                status.setText("Outbid");
+        } else {
+            if(selectedItem.getHighestBidder().equals(client.getId()) && selectedItem.getPrice() >= selectedItem.getReserve())
+                status.setText("Successful");
+            else
+                status.setText("Unsuccessful");
+        }
+    }
+    
+    //-----------------------------------------------Event Listeners-----------------------------------------------------------------------
+
+    // Used for button clicks
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+
+            // Refresh Button
+
+            if (e.getSource() == refreshButton) {
+                getListings();;
+            
+            // Bid Button
+            
+            } else if (e.getSource() == bidButton) {
+                int itemid = selectedItem.getId();
+                float bid = Float.parseFloat(bidInput.getText());
+                float currentbid = selectedItem.getPrice();
+                if(selectedItem.isActive()) {
+                    if(bid > currentbid)
+                        client.remotePlaceBid(itemid, bid);
+                    else
+                        JOptionPane.showMessageDialog(null, "Bid must be greater than current price.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "This item is no longer active.");
+                }
+            }
+
+        } catch (RemoteException | InvalidKeySpecException e1) {
+                e1.printStackTrace();
+        }
+    }
+
+    // Waits for table rows to be selected
+    private void rowSelect(MouseEvent evt) {                                     
+        JTable source = (JTable)evt.getSource();
+        int row = source.rowAtPoint( evt.getPoint() );
+        int itemid = Integer.parseInt(source.getModel().getValueAt(row, 0) + "");
+        selectedItem = items.get(itemid);
+        selectedName.setText(selectedItem.getTitle());
+        selectedPrice.setText(String.format("£%.2f", selectedItem.getPrice()));
+        showResults();
+    }
+
+
+    //--------------------------------------------------------Build Page--------------------------------------------------------
+
     public void buildPage() {
 
         allResultsPanel = new JPanel();
@@ -94,7 +210,7 @@ public class BidsGUI extends GUIPage implements ActionListener {
 
         
         Border loweredetched = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
-        detailsPanel.setBorder(BorderFactory.createTitledBorder(loweredetched, "Add Item"));
+        detailsPanel.setBorder(BorderFactory.createTitledBorder(loweredetched, "Listing Details"));
 
         GroupLayout detailsPanelLayout = new GroupLayout(detailsPanel);
         detailsPanel.setLayout(detailsPanelLayout);
@@ -224,118 +340,5 @@ public class BidsGUI extends GUIPage implements ActionListener {
     // Returns page title
     public String getTitle() {
         return title;
-    }
-
-    // Updates table with listings from auction server
-    public void getListings() throws RemoteException, InvalidKeySpecException {
-        
-        items = client.remoteGetUserBids();
-
-        Object[][] listings = new Object[items.keySet().size()][5];
-        int i = 0;
-        for (Integer key : items.keySet())
-        {
-            AuctionItem item = items.get(key);
-            listings[i][0] = item.getId();
-            listings[i][1] = item.getTitle();
-            listings[i][2] = String.format("£%.2f", item.getPrice());
-            listings[i][3] = item.getCondition();
-            listings[i][4] = item.getDescription();
-            i++;
-        }
-
-        listingsTable.setModel(new DefaultTableModel(listings,
-                new String[] { "Item ID", "Name", "Current Bid", "Condition", "Description" }) {
-            
-            private static final long serialVersionUID = 1L;
-            boolean[] canEdit = new boolean[] { false, false, false, false, false };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
-        listingsTable.getColumnModel().getColumn(0).setPreferredWidth(40);
-        listingsTable.getColumnModel().getColumn(1).setPreferredWidth(100);
-        listingsTable.getColumnModel().getColumn(2).setPreferredWidth(60);
-        listingsTable.getColumnModel().getColumn(3).setPreferredWidth(46);
-        tableScrollPane.setViewportView(listingsTable);
-        listingsTable.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent evt) {
-                rowSelect(evt);
-            }
-        });
-        
-        selectedItem = null;
-        bidInput.setText("");
-        selectedName.setText("");
-        selectedPrice.setText("");
-        
-        if(selectedItem != null)
-            selectedItem = items.get(selectedItem.getId());
-    }
-
-    public void showResults() {
-
-        name.setText(selectedItem.getTitle());
-        currentBid.setText(String.format("£%.2f", selectedItem.getPrice()));
-        myBid.setText(String.format("£%.2f", selectedItem.getBidders().get(client.getId().getId())));
-        condition.setText(selectedItem.getCondition());
-        description.setText("<html><p style=\"width:180px\">" + selectedItem.getDescription() + "</p></html>");
-
-        if(selectedItem.isActive()) {
-            if(selectedItem.getHighestBidder().getId() == client.getId().getId())
-                status.setText("Highest Bidder");
-            else
-                status.setText("Outbid");
-        } else {
-            if(selectedItem.getHighestBidder().getId() == client.getId().getId())
-                status.setText("Successful");
-            else
-                status.setText("Unsuccessful");
-        }
-    }
-    
-    //-----------------------------------------------Event Listeners-----------------------------------------------------------------------
-
-    // Used for button clicks
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        try {
-
-            // Refresh Button
-
-            if (e.getSource() == refreshButton) {
-                getListings();;
-            
-            // Bid Button
-            
-            } else if (e.getSource() == bidButton) {
-                int itemid = selectedItem.getId();
-                float bid = Float.parseFloat(bidInput.getText());
-                float currentbid = selectedItem.getPrice();
-                if(selectedItem.isActive()) {
-                    if(bid > currentbid)
-                        client.remotePlaceBid(itemid, bid);
-                    else
-                        JOptionPane.showMessageDialog(null, "Bid must be greater than current price.");
-                } else {
-                    JOptionPane.showMessageDialog(null, "This item is no longer active.");
-                }
-            }
-
-        } catch (RemoteException | InvalidKeySpecException e1) {
-                e1.printStackTrace();
-        }
-    }
-
-    // Waits for table rows to be selected
-    private void rowSelect(MouseEvent evt) {                                     
-        JTable source = (JTable)evt.getSource();
-        int row = source.rowAtPoint( evt.getPoint() );
-        int itemid = Integer.parseInt(source.getModel().getValueAt(row, 0) + "");
-        selectedItem = items.get(itemid);
-        selectedName.setText(selectedItem.getTitle());
-        selectedPrice.setText(String.format("£%.2f", selectedItem.getPrice()));
-        showResults();
     }
 }

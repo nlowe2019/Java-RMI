@@ -30,7 +30,7 @@ public class MyListingsGUI extends GUIPage implements ActionListener {
     private JLabel status;
     private JButton closeButton;
 
-    private JPanel closedPanel; 
+    private JPanel closedPanel;             // Item Buyer details
     private JLabel finalBidTag;
     private JLabel finalBid;
     private JLabel buyerNameTag;
@@ -38,7 +38,7 @@ public class MyListingsGUI extends GUIPage implements ActionListener {
     private JLabel emailTag;
     private JLabel email;
 
-    private JPanel tablePanel;         // Results panel components
+    private JPanel tablePanel;              // Results panel components
     private JButton refreshButton;
     private JTable myListingsTable;
     private JScrollPane tableScrollPane;
@@ -52,6 +52,110 @@ public class MyListingsGUI extends GUIPage implements ActionListener {
         client = c;
         buildPage();
     }
+
+    // Updates table with listings from auction server
+    public void getMyListings() throws RemoteException, InvalidKeySpecException {
+        
+        items = client.remoteGetMyListings();
+
+        Object[][] listings = new Object[items.keySet().size()][4];
+        int i = 0;
+        for (Integer key : items.keySet())
+        {
+            AuctionItem item = items.get(key);
+                listings[i][0] = item.getId();
+                listings[i][1] = item.getTitle();
+                listings[i][2] = String.format("£%.2f", item.getPrice());
+                listings[i][3] = String.format("£%.2f", item.getReserve());
+                i++;
+        }
+
+        myListingsTable.setModel(new DefaultTableModel(listings,
+            new String[] { "Item ID", "Name", "Current Bid", "Reserve Price"}) {
+            private static final long serialVersionUID = 1L;
+            boolean[] canEdit = new boolean[] { false, false, false, false};
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit[columnIndex];
+            }
+        });
+        myListingsTable.getColumnModel().getColumn(0).setPreferredWidth(60);
+        myListingsTable.getColumnModel().getColumn(1).setPreferredWidth(160);
+        tableScrollPane.setViewportView(myListingsTable);
+        myListingsTable.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                rowSelect(evt);
+            }
+        });
+        
+        if(selectedItem != null)
+            selectedItem = items.get(selectedItem.getId());
+    }
+
+    public void closeListing() {
+        try {
+            client.remoteCloseListing(selectedItem.getId());
+            getMyListings();
+            showResults();
+        } catch (RemoteException | InvalidKeySpecException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showResults() {
+        name.setText(selectedItem.getTitle());
+        currentBid.setText(String.format("£%.2f", selectedItem.getPrice()));
+        reserve.setText(String.format("£%.2f", selectedItem.getReserve()));
+        condition.setText(selectedItem.getCondition());
+        description.setText("<html><p style=\"width:180px\">" + selectedItem.getDescription() + "</p></html>");
+        if(!selectedItem.isActive() && selectedItem.getPrice() > selectedItem.getReserve()) {
+            closedPanel.setVisible(true);
+            status.setText("Successful");
+            finalBid.setText(String.format("£%.2f", selectedItem.getPrice()));
+            buyerName.setText(selectedItem.getBidder().getName());
+            email.setText(selectedItem.getBidder().getEmail());
+        } else if(!selectedItem.isActive() && !(selectedItem.getPrice() >= selectedItem.getReserve())) {
+            status.setText("Unsuccessful");
+            closedPanel.setVisible(false);
+        } else {
+            status.setText("Active");
+            closedPanel.setVisible(false);
+        }
+    }
+
+    //-----------------------------------------------Event Listeners-----------------------------------------------------------------------
+
+   // Used for button clicks
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+
+            if (e.getSource() == refreshButton) {
+                    getMyListings();
+            } else if (e.getSource() == closeButton) {
+                if(selectedItem != null) {
+                    if(selectedItem.isActive())
+                        closeListing();
+                    else
+                        JOptionPane.showMessageDialog(null, "This listing has already been closed");
+                }
+            }
+
+        } catch (RemoteException | InvalidKeySpecException e1) {
+               e1.printStackTrace();
+        }
+    }
+
+    // Waits for table rows to be selected
+    private void rowSelect(MouseEvent evt) {                                     
+        JTable source = (JTable)evt.getSource();
+        int row = source.rowAtPoint( evt.getPoint() );
+        int itemid = Integer.parseInt(source.getModel().getValueAt(row, 0) + "");
+        selectedItem = items.get(itemid);
+        showResults();
+    }
+
+    //--------------------------------------------------------Build Page------------------------------------------------------
 
     public void buildPage() {
 
@@ -248,111 +352,9 @@ public class MyListingsGUI extends GUIPage implements ActionListener {
                 .addContainerGap())
         );
     }
-
-    // Updates table with listings from auction server
-    public void getMyListings() throws RemoteException, InvalidKeySpecException {
-        
-        items = client.remoteGetMyListings();
-
-        Object[][] listings = new Object[items.keySet().size()][4];
-        int i = 0;
-        for (Integer key : items.keySet())
-        {
-            AuctionItem item = items.get(key);
-                listings[i][0] = item.getId();
-                listings[i][1] = item.getTitle();
-                listings[i][2] = String.format("£%.2f", item.getPrice());
-                listings[i][3] = String.format("£%.2f", item.getReserve());
-                i++;
-        }
-
-        myListingsTable.setModel(new DefaultTableModel(listings,
-            new String[] { "Item ID", "Name", "Current Bid", "Reserve Price"}) {
-            private static final long serialVersionUID = 1L;
-            boolean[] canEdit = new boolean[] { false, false, false, false};
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
-        myListingsTable.getColumnModel().getColumn(0).setPreferredWidth(60);
-        myListingsTable.getColumnModel().getColumn(1).setPreferredWidth(160);
-        tableScrollPane.setViewportView(myListingsTable);
-        myListingsTable.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent evt) {
-                rowSelect(evt);
-            }
-        });
-        
-        if(selectedItem != null)
-            selectedItem = items.get(selectedItem.getId());
-    }
-
-    public void closeListing() {
-        try {
-            client.remoteCloseListing(selectedItem.getId());
-            getMyListings();
-            showResults();
-        } catch (RemoteException | InvalidKeySpecException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void showResults() {
-        name.setText(selectedItem.getTitle());
-        currentBid.setText(String.format("£%.2f", selectedItem.getPrice()));
-        reserve.setText(String.format("£%.2f", selectedItem.getReserve()));
-        condition.setText(selectedItem.getCondition());
-        description.setText("<html><p style=\"width:180px\">" + selectedItem.getDescription() + "</p></html>");
-        if(!selectedItem.isActive() && selectedItem.getPrice() > selectedItem.getReserve()) {
-            closedPanel.setVisible(true);
-            status.setText("Successful");
-            finalBid.setText(String.format("£%.2f", selectedItem.getPrice()));
-            buyerName.setText(selectedItem.getBidder().getName());
-            email.setText(selectedItem.getBidder().getEmail());
-        } else if(!selectedItem.isActive() && !(selectedItem.getPrice() > selectedItem.getReserve())) {
-            status.setText("Unsuccessful");
-            closedPanel.setVisible(false);
-        } else {
-            status.setText("Active");
-            closedPanel.setVisible(false);
-        }
-    }
-
+    
     // Returns page title
     public String getTitle() {
         return title;
-    }
-
-    //-----------------------------------------------Event Listeners-----------------------------------------------------------------------
-
-   // Used for button clicks
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        try {
-
-            if (e.getSource() == refreshButton) {
-                    getMyListings();
-            } else if (e.getSource() == closeButton) {
-                if(selectedItem != null) {
-                    if(selectedItem.isActive())
-                        closeListing();
-                    else
-                        JOptionPane.showMessageDialog(null, "This listing has already been closed");
-                }
-            }
-
-        } catch (RemoteException | InvalidKeySpecException e1) {
-               e1.printStackTrace();
-        }
-    }
-
-    // Waits for table rows to be selected
-    private void rowSelect(MouseEvent evt) {                                     
-        JTable source = (JTable)evt.getSource();
-        int row = source.rowAtPoint( evt.getPoint() );
-        int itemid = Integer.parseInt(source.getModel().getValueAt(row, 0) + "");
-        selectedItem = items.get(itemid);
-        showResults();
     }
 }

@@ -53,6 +53,6 @@ public class ClientGUI {
         // Adds pages to Tabbed Pane
 
         pages.forEach((page) -> tab.addTab(page.getTitle(), page)); 
-
+        frame.pack();
     }
 }

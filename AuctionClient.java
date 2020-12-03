@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.net.MalformedURLException;
@@ -17,11 +18,10 @@ public class AuctionClient {
     private ClientGUI gui;
 
     public static void main(String[] args) {
-        new AuctionClient(1);
-        new AuctionClient(2);
+        new AuctionClient();
     }
 
-    public AuctionClient(int n) {
+    public AuctionClient() {
 
         gui = new ClientGUI(this);
 
@@ -52,54 +52,81 @@ public class AuctionClient {
 
 //--------------------------------------------------------Remote Methods-----------------------------------------------------------------
 
+    // Returns item with id specified by user
     public AuctionItem remoteGetSpec(int itemID) throws RemoteException, InvalidKeySpecException {
         // Retrieve encrypted item from server
-        SealedObject item = auction.getSpec(itemID, id);
+        //SealedObject item = auction.getSpec(itemID, id);
         // Decrypt and return item
-        return (AuctionItem) aesDecrypt(item);
+        return null;//(AuctionItem) aesDecrypt(item, id.getEmail());
     }
 
-    public HashMap<Integer, AuctionItem> remoteGetActiveListings() throws RemoteException, InvalidKeySpecException {
+    // Returns hashmap of all items which are currently active
+    public HashMap<Integer, AuctionItem> remoteGetActiveListings() throws Exception {
         return (HashMap<Integer, AuctionItem>) auction.getActiveListings(id);
     }
 
+    // Returns hashmap of all listings which user has bid on
     public HashMap<Integer, AuctionItem> remoteGetUserBids() throws RemoteException, InvalidKeySpecException {
-        return (HashMap<Integer, AuctionItem>) auction.getUserBids(id);
+        return null;//(HashMap<Integer, AuctionItem>) auction.getUserBids(id);
     }
 
+    // Returns hashmap of all auction items listed by given user
     public HashMap<Integer, AuctionItem> remoteGetMyListings() throws RemoteException, InvalidKeySpecException {
-        return (HashMap<Integer, AuctionItem>) auction.getUserListings(id);
+        return null;//(HashMap<Integer, AuctionItem>) auction.getUserListings(id);
     }
 
+    // Adds item listing to auction - will fail if reserve price is lower than starting price
     public void remoteAddListing(String itemTitle, float price, float reserve, String itemDescription, String itemCondition)
             throws RemoteException {
         auction.addListing(itemTitle, price, reserve, itemDescription, itemCondition, id);
     }
 
+    // Places bid on item - will fail if item is not active, user is the seller, or bid is lower than current highest bid
     public void remotePlaceBid(int itemId, float bid) throws RemoteException {
-        auction.placeBid(itemId, bid, id);
+        //auction.placeBid(itemId, bid, id);
     }
 
+    // Closes specified item listing - will fail if passed id doesnt match item seller
     public void remoteCloseListing(int itemId) throws RemoteException {
-        auction.closeListing(itemId);
+        //auction.closeListing(itemId, id);
     }
 
-    public void remoteRegisterUser(String email, String name) throws RemoteException, NoSuchAlgorithmException, IOException {
-        auction.registerUser(email, name);
+    // Sends new email and name to server. Server then generates new id number and shared key and saves in file.
+    public boolean remoteRegisterUser(String email, String name) throws RemoteException, NoSuchAlgorithmException, IOException {
+        return auction.registerUser(email, name);
     }
 
-    public void remoteLoginUser(String email) throws RemoteException, NoSuchAlgorithmException, IOException {
-        id = auction.loginUser(email);
-        if(id != null)
+    // Logs user into auction using 3-step authentication - throwing everything because deadlines 
+    public boolean remoteLoginUser(String email) throws RemoteException, NoSuchAlgorithmException, IOException,
+            IllegalBlockSizeException, InvalidKeyException, NoSuchPaddingException, ClassNotFoundException,
+            BadPaddingException {
+
+        // Client retrieves public key from server to encrypt email
+        Key publicKey = auction.getPublicKey();
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        SealedObject emailRSA = new SealedObject(email, cipher);
+
+        // Asks server for challenge and decrypts
+        SealedObject challenge = auction.sendChallenge(emailRSA);
+        int decryptedChallenge = (int) aesDecrypt(challenge, email);
+
+        // Sends decrypted challenge back to server, clientid is returned to use auction if response was correct
+        id = auction.loginUser(emailRSA, decryptedChallenge);
+        if(id != null) {
             gui.login();
+            return true;
+        } else {
+            return false;
+        }
     }
 
-// -----------------------------------------------------Encryption Methods----------------------------------------------------------------
+// -----------------------------------------------------AES Encryption Methods----------------------------------------------------------------
 
-    public Object aesDecrypt(SealedObject sealedItem) {
+    public Object aesDecrypt(SealedObject sealedItem, String email) {
         try {
             // Reads shared key from text file
-            SecretKey key = AccountManager.loadKey(id.getEmail());
+            SecretKey key = AccountManager.loadKey(email);
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, key);
             // Returns decrypted object
@@ -133,9 +160,9 @@ public class AuctionClient {
         return null;
     }
 
-    public SealedObject aesEncrypt(Serializable toEncrypt) throws java.rmi.RemoteException, InvalidKeySpecException {
+    public SealedObject aesEncrypt(Serializable toEncrypt, String email) throws java.rmi.RemoteException, InvalidKeySpecException {
         try {
-            SecretKey key = AccountManager.loadKey(id.getEmail());
+            SecretKey key = AccountManager.loadKey(email);
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, key);
             return new SealedObject(toEncrypt, cipher);
